@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Line Interface</title>
+    <style>
+        body {
+            font-family: 'Lucida Console', Monaco, monospace;
+            background-color: #000;
+            color: #00ff00;
+            padding: 20px;
+            margin: 0;
+        }
+        #cli-container {
+            width: 80%;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #444;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-y: auto;
+            height: 400px;
+        }
+        #cli-input {
+            width: calc(100% - 16px);
+            border: none;
+            background-color: transparent;
+            color: #00ff00;
+            font-family: 'Lucida Console', Monaco, monospace;
+            font-size: 16px;
+            outline: none;
+        }
+        #banner {
+            text-align: center;
+            color: #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <pre id="banner">
+      
+########################################
+      ###################ASCII ART HERE####################
+################################################
+                                                  
+    </pre>
+
+    <div id="cli-container">
+        <p>Welcome to My Website CLI</p>
+        <div id="cli-output"></div>
+        <div>
+            <span>$&nbsp;</span><input type="text" id="cli-input" autofocus>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const cliContainer = document.getElementById('cli-container');
+            const cliOutput = document.getElementById('cli-output');
+            const cliInput = document.getElementById('cli-input');
+            const banner = document.getElementById('banner');
+
+            cliInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const command = cliInput.value.trim();
+                    if (command !== '') {
+                        processCommand(command);
+                    }
+                    cliInput.value = '';
+                }
+            });
+
+            function processCommand(command) {
+                const output = document.createElement('div');
+                if (command === 'help') {
+                    output.innerHTML = 'Available commands:';
+                    output.innerHTML += '<br>- help: Show available commands';
+                    output.innerHTML += '<br>- clear: Clear the screen';
+                    output.innerHTML += '<br>- contact: Display contact information';
+                    output.innerHTML += '<br>- email: Display email address section';
+                    output.innerHTML += '<br>- banner: Toggle the buf0rd banner';
+                    output.innerHTML += '<br>- blog: Go to blog.thiswebsite.com';
+                    output.innerHTML += '<br>- youtube: Go to a specific YouTube channel';
+                } else if (command === 'clear') {
+                    cliOutput.innerHTML = '';
+                } else if (command === 'contact') {
+                    output.innerHTML = '<h2>Contact Information</h2>';
+                    output.innerHTML += '<p>Name: John Doe</p>';
+                    output.innerHTML += '<p>Email: johndoe@example.com</p>';
+                    output.innerHTML += '<p>Phone: +1 (123) 456-7890</p>';
+                } else if (command === 'email') {
+                    output.innerHTML = '<h2>Email Address</h2>';
+                    output.innerHTML += '<p>Email: contact@example.com</p>';
+                } else if (command === 'banner') {
+                    toggleBanner();
+                } else if (command === 'blog') {
+                    window.open('https://blog.thiswebsite.com', '_blank');
+                } else if (command === 'youtube') {
+                    window.open('https://www.youtube.com/channel/your-channel-id', '_blank');
+                } else {
+                    output.textContent = 'Command not recognized: ' + command;
+                }
+                cliOutput.appendChild(output);
+                cliContainer.scrollTop = cliContainer.scrollHeight; // Auto scroll to bottom
+            }
+
+            function toggleBanner() {
+                if (banner.style.display === 'none') {
+                    banner.style.display = 'block';
+                } else {
+                    banner.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
